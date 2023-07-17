@@ -1,9 +1,11 @@
-POST http://localhost:3001/api/persons
+POST http://localhost:3003/api/blogs
 content-type: application/json
 
 {
-    "name": "le",
-    "nber": "Wed, 21 Oct 2015 18:27:50 GMT"
+    "title": "testtitle",
+    "author": "author",
+    "url": "url",
+    "likes": 6
 }
 
 ###
@@ -11,8 +13,7 @@ content-type: application/json
 DELETE http://localhost:3001/api/persons/64af5aafb5625ac4598fe9b1
 ###
 
-GET  http://localhost:3001/api/persons/64af621a2b98b9d8665d16ca
-
+GET  http://localhost:3003/api/blogs
 ###
 
 PUT http://localhost:3001/api/persons/64af5aca5ca7407b9aaa89f5
