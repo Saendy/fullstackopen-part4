@@ -113,6 +113,47 @@ test('creating a blog with no url returns status code 400', async () => {
         .expect(400)
 })
 
+test('deleting a blog is successful', async () => {
+    const blogsResponse = await api.get('/api/blogs')
+    await api.delete(`/api/blogs/${blogsResponse.body[0].id}`)
+        .expect(204)
+
+
+    const deleteBlogsResponse = await api.get('/api/blogs')
+    expect(deleteBlogsResponse.body).toHaveLength(initialBlogs.length - 1)
+
+    const titles = deleteBlogsResponse.body.map(r => r.title)
+    expect(titles).not.toContain(blogsResponse.body[0].title)
+})
+
+test('deleting a blog with invalid id returns status code 400', async () => {
+    await api.delete('/api/blogs/a')
+        .expect(400)
+})
+
+test('updating a blog is successful', async () => {
+    const blogsResponse = await api.get('/api/blogs')
+    const newBlog = {
+        likes: blogsResponse.body[0].likes + 1
+    }
+
+    await api.put(`/api/blogs/${blogsResponse.body[0].id}`)
+        .send(newBlog)
+
+    const updatedBlogsResponse = await api.get('/api/blogs')
+    expect(updatedBlogsResponse.body[0].likes).toBe(blogsResponse.body[0].likes + 1)
+})
+
+test('updating a blog with invalid id returns status code 400', async () => {
+    const blogsResponse = await api.get('/api/blogs')
+    const newBlog = {
+        likes: blogsResponse.body[0].likes + 1
+    }
+
+    await api.put('/api/blogs/a')
+        .send(newBlog)
+        .expect(400)
+})
 
 
 afterAll(async () => {
