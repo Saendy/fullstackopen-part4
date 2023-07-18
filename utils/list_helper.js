@@ -26,7 +26,6 @@ const summariseAuthors = (blogs) => {
             blogCount: authorSummary[author].blogCount
         })
     })
-    console.log(authorList)
     return authorList
 }
 
