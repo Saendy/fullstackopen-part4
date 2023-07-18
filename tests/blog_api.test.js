@@ -2,33 +2,18 @@ const mongoose = require('mongoose')
 const supertest = require('supertest')
 const app = require('../app')
 const Blog = require('../models/blog')
-
+const helper = require('./test_helper')
 const api = supertest(app)
 
-const initialBlogs = [
-    {
-        title: 'blog 1',
-        author: 'author 1',
-        url: 'url 1',
-        likes: 6
-    },
-    {
-        title: 'blog 2',
-        author: 'author 2',
-        url: 'url 2',
-        likes: 3
-    },
-]
 
 beforeEach(async () => {
     await Blog.deleteMany({})
-    let noteObject = new Blog(initialBlogs[0])
-    await noteObject.save()
-    noteObject = new Blog(initialBlogs[1])
-    await noteObject.save()
+
+    for (let blog of helper.initialBlogs) {
+        let blogObject = new Blog(blog)
+        await blogObject.save()
+    }
 })
-
-
 
 test('blogs are returned as json', async () => {
     await api
@@ -39,7 +24,7 @@ test('blogs are returned as json', async () => {
 
 test('the correct number of blogs are returned', async () => {
     const response = await api.get('/api/blogs')
-    expect(response.body).toHaveLength(initialBlogs.length)
+    expect(response.body).toHaveLength(helper.initialBlogs.length)
 
 })
 test('a specific blog is within the returned blogs', async () => {
@@ -71,7 +56,7 @@ test('adding a new blog is successful', async () => {
 
     const titles = response.body.map(r => r.title)
 
-    expect(response.body).toHaveLength(initialBlogs.length + 1)
+    expect(response.body).toHaveLength(helper.initialBlogs.length + 1)
     expect(titles).toContain('blog 3')
 })
 
@@ -120,7 +105,7 @@ test('deleting a blog is successful', async () => {
 
 
     const deleteBlogsResponse = await api.get('/api/blogs')
-    expect(deleteBlogsResponse.body).toHaveLength(initialBlogs.length - 1)
+    expect(deleteBlogsResponse.body).toHaveLength(helper.initialBlogs.length - 1)
 
     const titles = deleteBlogsResponse.body.map(r => r.title)
     expect(titles).not.toContain(blogsResponse.body[0].title)

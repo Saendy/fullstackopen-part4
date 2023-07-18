@@ -7,22 +7,19 @@ const newBlog = require('./controllers/new_blog')
 const deleteBlog = require('./controllers/delete_blog')
 const updateBlog = require('./controllers/update_blog')
 const allBlogs = require('./controllers/all_blogs')
+const getBlog = require('./controllers/get_blog')
 const config = require('./utils/config')
 const errorHandler = require('./utils/middleware')
-
+const usersRouter = require('./controllers/users')
+const blogsRouter = require('./controllers/blogs')
 
 mongoose.connect(config.MONGODB_URI)
 
 app.use(cors())
 app.use(express.json())
 
-app.get('/api/blogs', allBlogs)
-
-app.post('/api/blogs', newBlog)
-
-app.delete('/api/blogs/:id', deleteBlog)
-
-app.put('/api/blogs/:id', updateBlog)
+app.use(blogsRouter)
+app.use(usersRouter)
 
 app.use(errorHandler)
 
