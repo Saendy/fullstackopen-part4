@@ -4,14 +4,27 @@ const app = require('../app')
 const Blog = require('../models/blog')
 const helper = require('./test_helper')
 const api = supertest(app)
+const bcrypt = require('bcrypt')
+const User = require('../models/user')
+
+beforeAll(async () => {
+
+    await User.deleteMany({})
+    const passwordHash = await bcrypt.hash('sekret', 10)
+    const user = new User({ username: 'root', passwordHash })
+    await user.save()
+})
 
 
 beforeEach(async () => {
-    await Blog.deleteMany({})
 
+    const token = await helper.generateToken()
+    await Blog.deleteMany({})
     for (let blog of helper.initialBlogs) {
-        let blogObject = new Blog(blog)
-        await blogObject.save()
+        await api
+            .post('/api/blogs')
+            .set('authorization', `Bearer ${token}`)
+            .send(blog)
     }
 })
 
@@ -39,6 +52,7 @@ test('check blogs have an id', async () => {
 })
 
 test('adding a new blog is successful', async () => {
+    const token = await helper.generateToken()
     const newBlog = {
         title: 'blog 3',
         author: 'author 3',
@@ -48,6 +62,7 @@ test('adding a new blog is successful', async () => {
 
     await api
         .post('/api/blogs')
+        .set('authorization', `Bearer ${token}`)
         .send(newBlog)
         .expect(201)
         .expect('Content-Type', /application\/json/)
@@ -61,6 +76,7 @@ test('adding a new blog is successful', async () => {
 })
 
 test('add a blog with no likes specified defaults to 0', async () => {
+    const token = await helper.generateToken()
     const newBlog = {
         title: 'blog 3',
         author: 'author 3',
@@ -69,12 +85,14 @@ test('add a blog with no likes specified defaults to 0', async () => {
 
     const response = await api
         .post('/api/blogs')
+        .set('authorization', `Bearer ${token}`)
         .send(newBlog)
 
     expect(response.body.likes).toBe(0)
 })
 
 test('creating a blog with no title returns status code 400', async () => {
+    const token = await helper.generateToken()
     const newBlog = {
         author: 'author 3',
         url: 'url 3'
@@ -82,11 +100,13 @@ test('creating a blog with no title returns status code 400', async () => {
 
     await api
         .post('/api/blogs')
+        .set('authorization', `Bearer ${token}`)
         .send(newBlog)
         .expect(400)
 })
 
 test('creating a blog with no url returns status code 400', async () => {
+    const token = await helper.generateToken()
     const newBlog = {
         author: 'author 3',
         title: 'title 3'
@@ -94,13 +114,30 @@ test('creating a blog with no url returns status code 400', async () => {
 
     await api
         .post('/api/blogs')
+        .set('authorization', `Bearer ${token}`)
         .send(newBlog)
         .expect(400)
 })
 
+test('creating a blog with no token returns status code 400', async () => {
+    const newBlog = {
+        title: 'blog 3',
+        author: 'author 3',
+        url: 'url 3'
+    }
+
+    await api
+        .post('/api/blogs')
+        .send(newBlog)
+        .expect(401)
+})
+
+
 test('deleting a blog is successful', async () => {
+    const token = await helper.generateToken()
     const blogsResponse = await api.get('/api/blogs')
     await api.delete(`/api/blogs/${blogsResponse.body[0].id}`)
+        .set('authorization', `Bearer ${token}`)
         .expect(204)
 
 
@@ -112,17 +149,21 @@ test('deleting a blog is successful', async () => {
 })
 
 test('deleting a blog with invalid id returns status code 400', async () => {
+    const token = await helper.generateToken()
     await api.delete('/api/blogs/a')
+        .set('authorization', `Bearer ${token}`)
         .expect(400)
 })
 
 test('updating a blog is successful', async () => {
+    const token = await helper.generateToken()
     const blogsResponse = await api.get('/api/blogs')
     const newBlog = {
         likes: blogsResponse.body[0].likes + 1
     }
 
     await api.put(`/api/blogs/${blogsResponse.body[0].id}`)
+        .set('authorization', `Bearer ${token}`)
         .send(newBlog)
 
     const updatedBlogsResponse = await api.get('/api/blogs')
@@ -130,12 +171,14 @@ test('updating a blog is successful', async () => {
 })
 
 test('updating a blog with invalid id returns status code 400', async () => {
+    const token = await helper.generateToken()
     const blogsResponse = await api.get('/api/blogs')
     const newBlog = {
         likes: blogsResponse.body[0].likes + 1
     }
 
     await api.put('/api/blogs/a')
+        .set('authorization', `Bearer ${token}`)
         .send(newBlog)
         .expect(400)
 })

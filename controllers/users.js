@@ -2,7 +2,7 @@ const bcrypt = require('bcrypt')
 const usersRouter = require('express').Router()
 const User = require('../models/user')
 
-usersRouter.post('/api/users', async (request, response) => {
+usersRouter.post('/', async (request, response) => {
     const { username, name, password } = request.body
     if (password) {
         if (password.length < 4) {
@@ -26,13 +26,13 @@ usersRouter.post('/api/users', async (request, response) => {
     }
 })
 
-usersRouter.get('/api/users', async (request, response) => {
+usersRouter.get('/', async (request, response) => {
     const users = await User.find({})
         .populate('blogs')
     response.json(users)
 })
 
-usersRouter.delete('/api/users/:id', async (request, response) => {
+usersRouter.delete('/:id', async (request, response) => {
     await User.findByIdAndRemove(request.params.id)
     response.status(204).end()
 }

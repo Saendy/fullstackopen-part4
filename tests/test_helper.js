@@ -1,4 +1,7 @@
+const supertest = require('supertest')
 const User = require('../models/user')
+const app = require('../app')
+const api = supertest(app)
 
 const initialBlogs = [
     {
@@ -21,6 +24,14 @@ const usersInDb = async () => {
     return users
 }
 
+const generateToken = async () => {
+    const loginRequest = { username: 'root', password: 'sekret' }
+    const loginResponse = await api
+        .post('/api/login')
+        .send(loginRequest)
+    return loginResponse.body.token
+}
+
 module.exports = {
-    initialBlogs, usersInDb
+    initialBlogs, usersInDb, generateToken
 }
